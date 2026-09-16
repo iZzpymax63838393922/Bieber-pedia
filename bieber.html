@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bieberpedia.id - Panel Digital</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- FontAwesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+      --bg-deep: #08080a;
+      --bg-card: rgba(15, 15, 20, 0.9);
+      --border-glass: rgba(239, 68, 68, 0.2);
+      --primary: #ef4444;
+      --primary-hover: #dc2626;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --success: #22c55e;
+      --whatsapp: #25d366;
+      --sidebar-width: 260px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+  body { background-color: var(--bg-deep); color: var(--text-main); min-height: 100vh; }
+  .hide { display: none !important; }
+
+  /* LOGIN PAGE (Logo tetap ada di halaman login) */
+  #loginPage {
+    position: fixed; inset: 0; z-index: 999;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    background: var(--bg-deep);
+  }
+  .login-card {
+    background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 24px;
+    padding: 30px; width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+  }
+  .login-logo { text-align: center; margin-bottom: 20px; }
+  .logo-wrapper {
+      display: inline-block; background: #000; border-radius: 14px;
+      padding: 10px 18px; box-shadow: inset 0 0 12px rgba(239, 68, 68, 0.25);
+      border: 1px solid rgba(239, 68, 68, 0.4); margin-bottom: 10px;
+  }
+  .login-logo img {
+      max-width: 140px; height: auto; display: block; object-fit: contain;
+      mix-blend-mode: screen; filter: brightness(1.2) contrast(1.1);
+  }
+  .form-group { margin-bottom: 15px; }
+  label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
+  input, select, textarea {
+      width: 100%; background: rgba(10, 10, 14, 0.95); border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px; padding: 12px; color: var(--text-main); font-size: 14px; outline: none;
+  }
+  input:focus, select:focus { border-color: var(--primary); }
+  .btn {
+      background: var(--primary); color: #fff; border: none; padding: 12px;
+      border-radius: 10px; font-weight: 800; width: 100%; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;
+  }
+  .btn:hover { background: var(--primary-hover); }
+  .btn-wa { background: var(--whatsapp); color: #fff; }
+  .btn-blue { background: #ef4444; color: #fff; }
+  .btn-blue:hover { background: #dc2626; }
+  .btn-red { background: #991b1b; color: #fff; }
+  .btn-sm { padding: 6px 10px; font-size: 12px; width: auto; display: inline-block; margin: 2px; }
+  .err { color: #f87171; font-size: 12px; text-align: center; margin-bottom: 12px; display: none; }
+  .hint { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 14px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; }
+
+  /* APP LAYOUT */
+  #appPage { display: none; min-height: 100vh; }
+  #appPage.show { display: flex; }
+
+  sidebar {
+      width: var(--sidebar-width); background: rgba(10, 10, 14, 0.98);
+      border-right: 1px solid rgba(255, 255, 255, 0.05); position: fixed;
+      top: 0; bottom: 0; left: -280px; z-index: 100; display: flex;
+      flex-direction: column; transition: left 0.3s; overflow-y: auto;
+  }
+  sidebar.show { left: 0; }
+  .sidebar-header { padding: 25px 20px 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+  .sidebar-header h2 { font-size: 16px; font-weight: 800; color: #fff; letter-spacing: 0.5px; }
+  .sidebar-header h2 span { color: var(--primary); }
+  .sidebar-menu { padding: 15px; flex: 1; display: flex; flex-direction: column; gap: 5px; }
+  .menu-item {
+      display: flex; align-items: center; gap: 10px; padding: 12px 15px;
+      color: var(--text-muted); text-decoration: none; font-size: 14px;
+      border-radius: 8px; cursor: pointer; font-weight: 600;
+  }
+  .menu-item:hover, .menu-item.active { background: rgba(239, 68, 68, 0.15); color: var(--primary); }
+  .who { padding: 10px 15px; font-size: 12px; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+  .main-content { flex: 1; margin-left: 0; display: flex; flex-direction: column; width: 100%; }
+  @media(min-width: 768px) { sidebar { left: 0; } .main-content { margin-left: var(--sidebar-width); } }
+
+  .dash-nav {
+      background: rgba(10, 10, 14, 0.9); border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 90;
+  }
+  .menu-btn { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); width: 40px; height: 40px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .logout-btn { background: #991b1b; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+  #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 95; display: none; }
+  #overlay.show { display: block; }
+
+  main { padding: 25px; max-width: 900px; width: 100%; margin: 0 auto; }
+  .title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+  .sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+  .card-glass { background: var(--bg-card); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 25px; margin-bottom: 20px; }
+  
+  .price-box { text-align: center; padding: 14px; border: 1px dashed var(--primary); border-radius: 10px; margin-bottom: 15px; background: rgba(239,68,68,0.04); }
+  .price-box .l { font-size: 11px; color: var(--text-muted); }
+  .price-box .v { font-size: 24px; font-weight: 800; color: var(--primary); margin-top: 4px; }
+
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+  @media(min-width: 600px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+  .stat-card { background: var(--bg-card); border: 1px solid rgba(255,255,255,0.05); border-radius: 14px; padding: 15px; text-align: center; }
+  .stat-card .n { font-size: 20px; font-weight: 800; color: var(--primary); }
+  .stat-card .t { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  .ord-item, .usr-item {
+      background: #000; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;
+      padding: 14px; margin-bottom: 10px; font-size: 13px;
+  }
+  .ord-row, .usr-row { display: flex; justify-content: space-between; margin-bottom: 6px; gap: 10px; }
+  .ord-row span:first-child, .usr-row span:first-child { color: var(--text-muted); }
+  .ord-row span:last-child { text-align: right; word-break: break-all; }
+  
+  .badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; }
+  .b-pending { background: #78350f; color: #fbbf24; }
+  .b-done { background: #14532d; color: #4ade80; }
+  .b-cancel { background: #7f1d1d; color: #f87171; }
+  .b-admin { background: #7f1d1d; color: #fca5a5; }
+  .b-user { background: #333; color: #ccc; }
+  
+  .row-flex { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .empty { text-align: center; color: var(--text-muted); padding: 30px; font-size: 13px; }
+  footer { text-align: center; font-size: 11px; color: var(--text-muted); padding: 20px; }
+
+  /* FLOATING PROMO POPUP */
+  #promoPopup {
+      position: fixed; bottom: 25px; right: 25px; z-index: 9999;
+      background: linear-gradient(135deg, #18181b, #09090b);
+      border: 1px solid var(--primary); border-radius: 16px; padding: 18px;
+      width: 290px; box-shadow: 0 15px 35px rgba(239, 68, 68, 0.3);
+      animation: bounceIn 0.5s ease-out; display: none;
+  }
+  #promoPopup.show { display: block; }
+  @keyframes bounceIn {
+      0% { transform: scale(0.7); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+  }
+  .promo-close {
+      position: absolute; top: 10px; right: 12px; background: none; border: none;
+      color: var(--text-muted); font-size: 16px; cursor: pointer;
+  }
+  .promo-close:hover { color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-wrapper">
+        <img src="https://cdn.phototourl.com/free/2026-09-16-76176509-db68-43e3-baba-4b1fe4f0393f.png" alt="Logo Bieberpedia">
+      </div>
+      <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Silakan masuk untuk akses panel</p>
+    </div>
+    <div class="err" id="loginErr"></div>
+    <form onsubmit="event.preventDefault(); login();">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="loginUser" placeholder="username" autocomplete="off" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPass" placeholder="password" required>
+      </div>
+      <button type="submit" class="btn">MASUK SEKARANG</button>
+    </form>
+    <div class="hint">Admin Default: admin / admin123</div>
+  </div>
+</div>
+
+<!-- FLOATING PROMO POPUP -->
+<div id="promoPopup">
+  <button class="promo-close" onclick="closePromo()">×</button>
+  <div style="font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 4px;">🔥 Promo Spesial Hari Ini</div>
+  <div style="font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 6px;">Bonus Saldo Deposit 10%!</div>
+  <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Top up saldo minimal Rp 50.000 sekarang dan dapatkan extra saldo gratis langsung.</div>
+  <button class="btn" style="padding: 8px; font-size: 12px;" onclick="goTab('deposit'); closePromo();">Ambil Promo</button>
+</div>
+
+<!-- APP -->
+<div id="appPage">
+  <div id="overlay" onclick="closeDrawer()"></div>
+
+  <sidebar id="drawer">
+    <div class="sidebar-header">
+      <h2>BIEBERPEDIA<span>.ID</span></h2>
+      <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Panel Digital & Layanan</div>
+    </div>
+    <div class="who" id="whoAmI">Akun: -</div>
+    <div class="sidebar-menu">
+      <div class="menu-item active" onclick="goTab('sosmed')"><i class="fa-solid fa-share-nodes"></i> All Sosmed</div>
+      <div class="menu-item" onclick="goTab('deposit')"><i class="fa-solid fa-wallet"></i> Deposit Saldo</div>
+      <div class="menu-item" onclick="goTab('reseller')"><i class="fa-solid fa-crown"></i> Join Reseller</div>
+      <div class="menu-item" onclick="goTab('premium')"><i class="fa-solid fa-gem"></i> Aplikasi Premium</div>
+      <div class="menu-item" onclick="goTab('nokos')"><i class="fa-solid fa-phone"></i> Nokos (Nomor Kosong)</div>
+      <div class="menu-item" onclick="goTab('riwayat')"><i class="fa-solid fa-receipt"></i> Riwayat Order</div>
+      
+      <div id="adminMenuSection" style="display:none; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+        <div style="font-size: 10px; color: var(--text-muted); padding: 5px 15px; font-weight: 700;">MENU ADMIN</div>
+        <div class="menu-item" onclick="goTab('admin')"><i class="fa-solid fa-shield-halved"></i> Kontrol Order</div>
+        <div class="menu-item" onclick="goTab('kelola-layanan')"><i class="fa-solid fa-tags"></i> Kelola & Harga Layanan</div>
+        <div class="menu-item" onclick="goTab('users')"><i class="fa-solid fa-users"></i> Kelola User & Password</div>
+      </div>
+      <div class="menu-item" onclick="window.open('https://wa.me/628316835280','_blank')" style="margin-top:auto;"><i class="fa-brands fa-whatsapp"></i> Chat Admin</div>
+    </div>
+  </sidebar>
+
+  <div class="main-content">
+    <div class="dash-nav">
+      <button class="menu-btn" onclick="openDrawer()"><i class="fa-solid fa-bars"></i></button>
+      <div style="font-weight: 800; font-size: 15px; color: #fff;">BIEBERPEDIA<span style="color:var(--primary)">.ID</span></div>
+      <button class="logout-btn" onclick="logout()">Keluar</button>
+    </div>
+
+    <main>
+      <!-- TAB SOSMED -->
+      <section id="sec-sosmed">
+        <div class="title">All Sosmed Services</div>
+        <div class="sub">Pilih layanan sosial media yang kamu inginkan.</div>
+        <div class="card-glass">
+          <div class="form-group">
+            <label>Pilih Layanan</label>
+            <select id="sel-sosmed" onchange="updatePrice('sosmed')">
+              <option value="" data-price="0">-- Pilih Layanan --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Target (Username / Link Akun)</label>
+            <input type="text" id="target-sosmed" placeholder="@username atau link tautan">
+          </div>
+          <div class="price-box">
+            <div class="l">ESTIMASI TOTAL HARGA</div>
+            <div class="v" id="prc-sosmed">Rp 0</div>
+          </div>
+          <button class="btn btn-wa" onclick="checkout('sosmed')"><i class="fa-brands fa-whatsapp"></i> Order via WhatsApp</button>
+        </div>
+      </section>
+
+      <!-- TAB DEPOSIT -->
+      <section id="sec-deposit" class="hide">
+        <div class="title">Deposit Saldo</div>
+        <div class="sub">Isi saldo akun untuk transaksi otomatis & cepat.</div>
+        <div class="card-glass">
+          <div class="form-group">
+            <label>Pilih Nominal / Paket Deposit</label>
+            <select id="sel-deposit" onchange="updatePrice('deposit')">
+              <option value="" data-price="0">-- Pilih Nominal Deposit --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Username / ID Akun Kamu</label>
+            <input type="text" id="target-deposit" placeholder="masukkan username kamu">
+          </div>
+          <div class="price-box">
+            <div class="l">TOTAL TRANSFER</div>
+            <div class="v" id="prc-deposit">Rp 0</div>
+          </div>
+          <button class="btn btn-wa" onclick="checkout('deposit')"><i class="fa-brands fa-whatsapp"></i> Konfirmasi Deposit via WhatsApp</button>
+        </div>
+      </section>
+
+      <!-- TAB RESELLER -->
+      <section id="sec-reseller" class="hide">
+        <div class="title">Join Reseller Resmi</div>
+        <div class="sub">Dapatkan keuntungan khusus, harga termurah, dan akses penuh panel.</div>
+        <div class="card-glass">
+          <div class="form-group">
+            <label>Pilih Paket Reseller</label>
+            <select id="sel-reseller" onchange="updatePrice('reseller')">
+              <option value="" data-price="0">-- Pilih Paket Reseller --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Username Panel Kamu</label>
+            <input type="text" id="target-reseller" placeholder="username untuk aktivasi reseller">
+          </div>
+          <div class="price-box">
+            <div class="l">BIAYA PENDAFTARAN</div>
+            <div class="v" id="prc-reseller">Rp 0</div>
+          </div>
+          <button class="btn btn-wa" onclick="checkout('reseller')"><i class="fa-brands fa-whatsapp"></i> Daftar Reseller via WhatsApp</button>
+        </div>
+      </section>
+
+      <!-- TAB PREMIUM -->
+      <section id="sec-premium" class="hide">
+        <div class="title">Aplikasi Premium</div>
+        <div class="sub">Langganan akun aplikasi premium murah dan bergaransi.</div>
+        <div class="card-glass">
+          <div class="form-group">
+            <label>Pilih Aplikasi</label>
+            <select id="sel-premium" onchange="updatePrice('premium')">
+              <option value="" data-price="0">-- Pilih Aplikasi --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Email Pengiriman / Catatan Akun</label>
+            <input type="text" id="target-premium" placeholder="email atau catatan pesanan">
+          </div>
+          <div class="price-box">
+            <div class="l">ESTIMASI TOTAL HARGA</div>
+            <div class="v" id="prc-premium">Rp 0</div>
+          </div>
+          <button class="btn btn-wa" onclick="checkout('premium')"><i class="fa-brands fa-whatsapp"></i> Order via WhatsApp</button>
+        </div>
+      </section>
+
+      <!-- TAB NOKOS -->
+      <section id="sec-nokos" class="hide">
+        <div class="title">Nokos (Nomor Kosong)</div>
+        <div class="sub">Nomor kosong siap pakai verifikasi kode OTP.</div>
+        <div class="card-glass">
+          <div class="form-group">
+            <label>Pilih Negara / Layanan Nokos</label>
+            <select id="sel-nokos" onchange="updatePrice('nokos')">
+              <option value="" data-price="0">-- Pilih Nokos --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Aplikasi Tujuan OTP</label>
+            <input type="text" id="target-nokos" placeholder="cth: WhatsApp, Telegram, dll">
+          </div>
+          <div class="price-box">
+            <div class="l">ESTIMASI TOTAL HARGA</div>
+            <div class="v" id="prc-nokos">Rp 0</div>
+          </div>
+          <button class="btn btn-wa" onclick="checkout('nokos')"><i class="fa-brands fa-whatsapp"></i> Order via WhatsApp</button>
+        </div>
+      </section>
+
+      <!-- RIWAYAT -->
+      <section id="sec-riwayat" class="hide">
+        <div class="title">Riwayat Order</div>
+        <div class="sub">Daftar pesanan aktif dan riwayat transaksi kamu.</div>
+        <div id="riwayatContainer"></div>
+      </section>
+
+      <!-- KONTROL ADMIN -->
+      <section id="sec-admin" class="hide">
+        <div class="title">Panel Admin - Kontrol Order</div>
+        <div class="sub">Pantau dan ubah status pesanan masuk.</div>
+        
+        <div class="stats">
+          <div class="stat-card"><div class="n" id="st-total">0</div><div class="t">TOTAL</div></div>
+          <div class="stat-card"><div class="n" id="st-pending">0</div><div class="t">PENDING</div></div>
+          <div class="stat-card"><div class="n" id="st-done">0</div><div class="t">SELESAI</div></div>
+          <div class="stat-card"><div class="n" id="st-omzet">Rp 0</div><div class="t">OMZET</div></div>
+        </div>
+
+        <div class="card-glass">
+          <div class="form-group">
+            <label>Cari Transaksi / Target</label>
+            <input type="text" id="searchOrder" placeholder="ketik kata kunci..." oninput="renderAdminOrders()">
+          </div>
+          <div class="row-flex">
+            <button class="btn btn-sm btn-blue" onclick="renderAdminOrders()">Refresh Data</button>
+            <button class="btn btn-sm btn-red" onclick="clearAllOrders()">Hapus Semua Order</button>
+          </div>
+        </div>
+        <div id="adminOrdersContainer"></div>
+      </section>
+
+      <!-- KELOLA & UBAH HARGA LAYANAN -->
+      <section id="sec-kelola-layanan" class="hide">
+        <div class="title">Kelola Harga & Daftar Layanan</div>
+        <div class="sub">Tambah layanan baru atau ubah harga seluruh produk panel dengan mudah.</div>
+        
+        <div class="card-glass">
+          <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--primary);">Tambah Layanan Baru</h3>
+          <div class="form-group">
+            <label>Kategori</label>
+            <select id="newSrvCat">
+              <option value="sosmed">All Sosmed</option>
+              <option value="deposit">Deposit Saldo</option>
+              <option value="reseller">Join Reseller</option>
+              <option value="premium">Aplikasi Premium</option>
+              <option value="nokos">Nokos</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Nama Layanan</label>
+            <input type="text" id="newSrvName" placeholder="Contoh: followers aktif / deposit 50k">
+          </div>
+          <div class="form-group">
+            <label>Harga (Rp)</label>
+            <input type="number" id="newSrvPrice" placeholder="Contoh: 10000">
+          </div>
+          <button class="btn btn-blue" onclick="addService()">Tambah Layanan</button>
+        </div>
+
+        <div class="card-glass">
+          <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--primary);">Daftar Layanan & Harga Saat Ini</h3>
+          <div id="serviceListContainer"></div>
+        </div>
+      </section>
+
+      <!-- KELOLA USER -->
+      <section id="sec-users" class="hide">
+        <div class="title">Kelola User & Password</div>
+        <div class="sub">Tambah akun member baru atau ubah akses login user.</div>
+        
+        <div class="card-glass">
+          <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--primary);">Tambah User Baru</h3>
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="newUsrName" placeholder="username baru">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="text" id="newUsrPass" placeholder="password baru">
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="newUsrRole">
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <button class="btn btn-blue" onclick="addUser()">Simpan User Baru</button>
+        </div>
+
+        <div class="card-glass">
+          <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--primary);">Daftar User Terdaftar</h3>
+          <div id="usersListContainer"></div>
+        </div>
+      </section>
+
+    </main>
+    <footer>&copy; 2026 Bieberpedia.id. All Rights Reserved.</footer>
+  </div>
+</div>
+
+<script>
+  // DEFAULT DATA & SERVICES
+  let defaultServices = {
+    sosmed: [
+      { name: "Instagram Followers (100 Target)", price: 15000 },
+      { name: "Instagram Likes (500 Target)", price: 10000 },
+      { name: "TikTok Views (5000 Target)", price: 8000 },
+      { name: "YouTube Subscribers (50 Target)", price: 35000 }
+    ],
+    deposit: [
+      { name: "Deposit Saldo Rp 50.000 (Bonus 10%)", price: 50000 },
+      { name: "Deposit Saldo Rp 100.000 (Bonus 10%)", price: 100000 },
+      { name: "Deposit Saldo Rp 250.000 (Bonus 15%)", price: 250000 },
+      { name: "Deposit Saldo Rp 500.000 (Bonus 20%)", price: 500000 }
+    ],
+    reseller: [
+      { name: "Paket Reseller Silver (Akses Panel Dasar)", price: 50000 },
+      { name: "Paket Reseller Gold (Full Akses + API)", price: 150000 },
+      { name: "Paket Reseller VIP (Bimbingan Khusus + Web Sendiri)", price: 350000 }
+    ],
+    premium: [
+      { name: "Netflix Premium 1 Bulan (Sharing)", price: 35000 },
+      { name: "Spotify Premium 1 Bulan (Individual)", price: 25000 },
+      { name: "YouTube Premium 1 Bulan", price: 15000 },
+      { name: "Canva Pro 1 Tahun", price: 20000 }
+    ],
+    nokos: [
+      { name: "Nokos WhatsApp (Indonesia)", price: 6000 },
+      { name: "Nokos Telegram (Indonesia)", price: 5000 },
+      { name: "Nokos Google / Gmail (Global)", price: 8000 }
+    ]
+  };
+
+  let defaultUsers = [
+    { username: "admin", pass: "admin123", role: "admin" },
+    { username: "user", pass: "user123", role: "user" }
+  ];
+
+  let services = JSON.parse(localStorage.getItem('bieber_services')) || defaultServices;
+  let users = JSON.parse(localStorage.getItem('bieber_users')) || defaultUsers;
+  let orders = JSON.parse(localStorage.getItem('bieber_orders')) || [];
+  let currentUser = JSON.parse(localStorage.getItem('bieber_current_user')) || null;
+
+  // INIT
+  window.onload = function() {
+    if (currentUser) {
+      showApp();
+    } else {
+      document.getElementById('loginPage').style.display = 'flex';
+    }
+  };
+
+  function login() {
+    let u = document.getElementById('loginUser').value.trim();
+    let p = document.getElementById('loginPass').value.trim();
+    let errEl = document.getElementById('loginErr');
+
+    let found = users.find(x => x.username === u && x.pass === p);
+    if (found) {
+      currentUser = found;
+      localStorage.setItem('bieber_current_user', JSON.stringify(currentUser));
+      errEl.style.display = 'none';
+      showApp();
+    } else {
+      errEl.innerText = "Username atau Password salah!";
+      errEl.style.display = 'block';
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('bieber_current_user');
+    currentUser = null;
+    location.reload();
+  }
+
+  function showApp() {
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('appPage').classList.add('show');
+    document.getElementById('whoAmI').innerText = `Akun: ${currentUser.username} (${currentUser.role.toUpperCase()})`;
+    
+    if (currentUser.role === 'admin') {
+      document.getElementById('adminMenuSection').style.display = 'block';
+    } else {
+      document.getElementById('adminMenuSection').style.display = 'none';
+    }
+
+    populateDropdowns();
+    renderRiwayat();
+    
+    
+
+    // Tampilkan promo popup jika user biasa
+    if (currentUser.role !== 'admin') {
+      setTimeout(() => {
+        document.getElementById('promoPopup').classList.add('show');
+      }, 1000);
+    }
+  }
+
+  function closePromo() {
+    document.getElementById('promoPopup').classList.remove('show');
+  }
+
+  function openDrawer() {
+    document.getElementById('drawer').classList.add('show');
+    document.getElementById('overlay').classList.add('show');
+  }
+
+  function closeDrawer() {
+    document.getElementById('drawer').classList.remove('show');
+    document.getElementById('overlay').classList.remove('show');
+  }
+
+  function goTab(tabId) {
+    let secs = ['sosmed', 'deposit', 'reseller', 'premium', 'nokos', 'riwayat', 'admin', 'kelola-layanan', 'users'];
+    secs.forEach(s => {
+      let el = document.getElementById('sec-' + s);
+      if(el) el.classList.add('hide');
+    });
+
+    let target = document.getElementById('sec-' + tabId);
+    if(target) target.classList.remove('hide');
+
+    // Update active menu style
+    let items = document.querySelectorAll('.menu-item');
+    items.forEach(i => i.classList.remove('active'));
+    
+    closeDrawer();
+
+    if (tabId === 'admin') {
+      renderAdminOrders();
+    } else if (tabId === 'kelola-layanan') {
+      renderServiceList();
+    } else if (tabId === 'users') {
+      renderUsersList();
+    } else if (tabId === 'riwayat') {
+      renderRiwayat();
+    }
+  }
+
+  function populateDropdowns() {
+    ['sosmed', 'deposit', 'reseller', 'premium', 'nokos'].forEach(cat => {
+      let sel = document.getElementById('sel-' + cat);
+      if(!sel) return;
+      sel.innerHTML = `<option value="" data-price="0">-- Pilih Layanan --</option>`;
+      if (services[cat]) {
+        services[cat].forEach((srv, idx) => {
+          let opt = document.createElement('option');
+          opt.value = srv.name;
+          opt.setAttribute('data-price', srv.price);
+          opt.innerText = `${srv.name} - Rp ${srv.price.toLocaleString('id-ID')}`;
+          sel.appendChild(opt);
+        });
+      }
+    });
+  }
+
+  function updatePrice(cat) {
+    let sel = document.getElementById('sel-' + cat);
+    let priceBox = document.getElementById('prc-' + cat);
+    let opt = sel.options[sel.selectedIndex];
+    let price = opt ? parseInt(opt.getAttribute('data-price') || 0) : 0;
+    priceBox.innerText = `Rp ${price.toLocaleString('id-ID')}`;
+  }
+
+  function checkout(cat) {
+    let sel = document.getElementById('sel-' + cat);
+    let targetInp = document.getElementById('target-' + cat);
+    let opt = sel.options[sel.selectedIndex];
+    
+    if(!sel.value || !targetInp.value.trim()) {
+      alert("Harap pilih layanan dan isi target/username terlebih dahulu!");
+      return;
+    }
+
+    let price = parseInt(opt.getAttribute('data-price') || 0);
+    let target = targetInp.value.trim();
+
+    // Simpan ke database lokal order
+    let newOrder = {
+      id: 'ORD-' + Math.floor(100000 + Math.random() * 900000),
+      user: currentUser.username,
+      category: cat.toUpperCase(),
+      service: sel.value,
+      target: target,
+      price: price,
+      status: 'PENDING',
+      date: new Date().toLocaleString('id-ID')
+    };
+
+    orders.unshift(newOrder);
+    localStorage.setItem('bieber_orders', JSON.stringify(orders));
+
+    // Redirect ke WhatsApp Admin
+    let adminWa = "628316835280";
+    let msg = `Halo Admin Bieberpedia.id, Saya ingin memesan layanan:\n\n*ID Order:* ${newOrder.id}\n*Kategori:* ${newOrder.category}\n*Layanan:* ${newOrder.service}\n*Target:* ${newOrder.target}\n*Total:* Rp ${price.toLocaleString('id-ID')}\n*Username Akun:* ${currentUser.username}\n\nMohon segera diproses. Terima kasih!`;
+    let url = `https://wa.me/${adminWa}?text=` + encodeURIComponent(msg);
+    
+    window.open(url, '_blank');
+    goTab('riwayat');
+  }
+
+  function renderRiwayat() {
+    let container = document.getElementById('riwayatContainer');
+    let myOrders = orders.filter(o => currentUser.role === 'admin' || o.user === currentUser.username);
+
+    if (myOrders.length === 0) {
+      container.innerHTML = `<div class="card-glass empty">Belum ada riwayat transaksi.</div>`;
+      return;
+    }
+
+    let html = '';
+    myOrders.forEach(o => {
+      let badgeClass = o.status === 'SELESAI' ? 'b-done' : (o.status === 'BATAL' ? 'b-cancel' : 'b-pending');
+      html += `
+        <div class="ord-item">
+          <div class="ord-row"><span>ID Transaksi</span><strong>${o.id}</strong></div>
+          <div class="ord-row"><span>Kategori</span><span>${o.category}</span></div>
+          <div class="ord-row"><span>Layanan</span><span>${o.service}</span></div>
+          <div class="ord-row"><span>Target</span><span>${o.target}</span></div>
+          <div class="ord-row"><span>Total Harga</span><strong style="color:var(--primary)">Rp ${o.price.toLocaleString('id-ID')}</strong></div>
+          <div class="ord-row"><span>Tanggal</span><span>${o.date}</span></div>
+          <div class="ord-row"><span>Status</span><span class="badge ${badgeClass}">${o.status}</span></div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  }
+
+  function renderAdminOrders() {
+    let container = document.getElementById('adminOrdersContainer');
+    let keyword = document.getElementById('searchOrder').value.toLowerCase();
+    
+    let filtered = orders.filter(o => 
+      o.id.toLowerCase().includes(keyword) || 
+      o.user.toLowerCase().includes(keyword) || 
+      o.service.toLowerCase().includes(keyword) ||
+      o.target.toLowerCase().includes(keyword)
+    );
+
+    // Update Statistik
+    let total = orders.length;
+    let pending = orders.filter(o => o.status === 'PENDING').length;
+    let selesai = orders.filter(o => o.status === 'SELESAI').length;
+    let omzet = orders.filter(o => o.status === 'SELESAI').reduce((acc, cur) => acc + cur.price, 0);
+
+    document.getElementById('st-total').innerText = total;
+    document.getElementById('st-pending').innerText = pending;
+    document.getElementById('st-done').innerText = selesai;
+    document.getElementById('st-omzet').innerText = `Rp ${omzet.toLocaleString('id-ID')}`;
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<div class="card-glass empty">Tidak ada data order ditemukan.</div>`;
+      return;
+    }
+
+    let html = '';
+    filtered.forEach(o => {
+      let badgeClass = o.status === 'SELESAI' ? 'b-done' : (o.status === 'BATAL' ? 'b-cancel' : 'b-pending');
+      html += `
+        <div class="ord-item">
+          <div class="ord-row"><span>ID / User</span><strong>${o.id} (${o.user})</strong></div>
+          <div class="ord-row"><span>Layanan</span><span>${o.service}</span></div>
+          <div class="ord-row"><span>Target</span><span>${o.target}</span></div>
+          <div class="ord-row"><span>Harga</span><span>Rp ${o.price.toLocaleString('id-ID')}</span></div>
+          <div class="ord-row"><span>Status</span><span class="badge ${badgeClass}">${o.status}</span></div>
+          <div class="row-flex">
+            <button class="btn btn-sm btn-blue" onclick="updateOrderStatus('${o.id}', 'SELESAI')">Set Selesai</button>
+            <button class="btn btn-sm btn-red" onclick="updateOrderStatus('${o.id}', 'BATAL')">Batalkan</button>
+            <button class="btn btn-sm" style="background:#333;" onclick="deleteOrder('${o.id}')">Hapus</button>
+          </div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  }
+
+  function updateOrderStatus(id, status) {
+    let idx = orders.findIndex(o => o.id === id);
+    if(idx !== -1) {
+      orders[idx].status = status;
+      localStorage.setItem('bieber_orders', JSON.stringify(orders));
+      renderAdminOrders();
+    }
+  }
+
+  function deleteOrder(id) {
+    if(confirm("Yakin ingin menghapus order ini?")) {
+      orders = orders.filter(o => o.id !== id);
+      localStorage.setItem('bieber_orders', JSON.stringify(orders));
+      renderAdminOrders();
+    }
+  }
+
+  function clearAllOrders() {
+    if(confirm("Hapus seluruh riwayat order?")) {
+      orders = [];
+      localStorage.setItem('bieber_orders', JSON.stringify(orders));
+      renderAdminOrders();
+    }
+  }
+
+  function addService() {
+    let cat = document.getElementById('newSrvCat').value;
+    let name = document.getElementById('newSrvName').value.trim();
+    let price = parseInt(document.getElementById('newSrvPrice').value);
+
+    if(!name || isNaN(price)) {
+      alert("Harap isi nama dan harga layanan dengan benar!");
+      return;
+    }
+
+    if(!services[cat]) services[cat] = [];
+    services[cat].push({ name, price });
+    localStorage.setItem('bieber_services', JSON.stringify(services));
+    
+    document.getElementById('newSrvName').value = '';
+    document.getElementById('newSrvPrice').value = '';
+    populateDropdowns();
+    renderServiceList();
+    alert("Layanan baru berhasil ditambahkan!");
+  }
+
+  function renderServiceList() {
+    let container = document.getElementById('serviceListContainer');
+    let html = '';
+    for(let cat in services) {
+      services[cat].forEach((srv, idx) => {
+        html += `
+          <div class="ord-item">
+            <div class="ord-row"><span>[${cat.toUpperCase()}] ${srv.name}</span><strong>Rp ${srv.price.toLocaleString('id-ID')}</strong></div>
+            <div class="row-flex">
+              <button class="btn btn-sm btn-red" onclick="deleteService('${cat}', ${idx})">Hapus Layanan</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+    container.innerHTML = html || '<div class="empty">Belum ada layanan tersedia.</div>';
+  }
+
+  function deleteService(cat, idx) {
+    if(confirm("Hapus layanan ini?")) {
+      services[cat].splice(idx, 1);
+      localStorage.setItem('bieber_services', JSON.stringify(services));
+      populateDropdowns();
+      renderServiceList();
+    }
+  }
+
+  function addUser() {
+    let u = document.getElementById('newUsrName').value.trim();
+    let p = document.getElementById('newUsrPass').value.trim();
+    let r = document.getElementById('newUsrRole').value;
+
+    if(!u || !p) {
+      alert("Username dan password wajib diisi!");
+      return;
+    }
+
+    if(users.some(x => x.username === u)) {
+      alert("Username sudah terdaftar!");
+      return;
+    }
+
+    users.push({ username: u, pass: p, role: r });
+    localStorage.setItem('bieber_users', JSON.stringify(users));
+    
+    document.getElementById('newUsrName').value = '';
+    document.getElementById('newUsrPass').value = '';
+    renderUsersList();
+    alert("User baru berhasil ditambahkan!");
+  }
+
+  function renderUsersList() {
+    let container = document.getElementById('usersListContainer');
+    let html = '';
+    users.forEach((u, idx) => {
+      let badgeClass = u.role === 'admin' ? 'b-admin' : 'b-user';
+      html += `
+        <div class="usr-item">
+          <div class="usr-row"><span>Username</span><strong>${u.username}</strong></div>
+          <div class="usr-row"><span>Password</span><span>${u.pass}</span></div>
+          <div class="usr-row"><span>Role</span><span class="badge ${badgeClass}">${u.role.toUpperCase()}</span></div>
+          ${u.username !== 'admin' ? `<div class="row-flex"><button class="btn btn-sm btn-red" onclick="deleteUser(${idx})">Hapus User</button></div>` : ''}
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  }
+
+  function deleteUser(idx) {
+    if(confirm("Hapus user ini?")) {
+      users.splice(idx, 1);
+      localStorage.setItem('bieber_users', JSON.stringify(users));
+      renderUsersList();
+    }
+  }
+</script>
+</body>
+</html>
